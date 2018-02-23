@@ -12,6 +12,7 @@ from pyhap.accessory import (Accessory,
                              STANDALONE_AID)
 from pyhap.accessory_driver import AccessoryDriver
 
+
 @patch("pyhap.accessory_driver.AccessoryDriver.persist")
 @patch("pyhap.accessory_driver.HAPServer", new=Mock())
 def test_auto_add_aid_mac(_persist_mock):
@@ -20,12 +21,14 @@ def test_auto_add_aid_mac(_persist_mock):
     assert acc.aid == STANDALONE_AID
     assert acc.mac is not None
 
+
 @patch("pyhap.accessory_driver.AccessoryDriver.persist")
 @patch("pyhap.accessory_driver.HAPServer", new=Mock())
 def test_not_standalone_aid(_persist_mock):
     acc = Accessory("Test Accessory", aid=STANDALONE_AID + 1)
     with pytest.raises(ValueError):
         _driver = AccessoryDriver(acc, 51234, "192.168.1.1", "test.accessory")
+
 
 @patch("pyhap.accessory_driver.HAPServer", new=Mock())
 def test_persist_load():
@@ -47,3 +50,14 @@ def test_persist_load():
         assert driver.accessory.public_key == pk
     finally:
         os.remove(persist_file)
+
+
+@patch('pyhap.accessory_driver.HAPServer', new=Mock())
+def test_setup_hash():
+    fp = tempfile.NamedTemporaryFile(mode="r+")
+    persist_file = fp.name
+    fp.close()
+    acc = Accessory('Test Accessory', mac='01:23:45:AB:CD:EF', setup_id='ABCD')
+    driver = AccessoryDriver(acc, 51234, persist_file=persist_file)
+    driver.start()
+    assert driver.mdns_service_info._setup_hash() == b'ZX8tKA=='

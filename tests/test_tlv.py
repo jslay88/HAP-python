@@ -7,7 +7,7 @@ import string
 import pyhap.tlv as tlv
 
 
-def test_encode_and_code():
+def test_encode_and_decode():
     test_tag = b'T'
     test_value_short = b'VALUE'
     test_value_long = ((string.ascii_letters + string.digits) * 10).encode()

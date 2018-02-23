@@ -31,9 +31,17 @@ class TestAccessory(object):
         assert pattern.match(acc.pincode) is not None
 
     def test_xhm_uri(self):
-        acc = accessory.Accessory('Test Accessory')
-        pattern = re.compile('X-HM://[A-Z0-9]{9}' + acc.setup_id)
-        assert pattern.match(acc.xhm_uri) is not None
+        """
+        Set ``pincode`` on ``Accessory`` to enforce persistent ``encoded_payload`` for testing.
+        Allow ``setup_id`` to be randomly generated.
+        """
+        acc = accessory.Accessory('Test Accessory', pincode=bytearray(b'123-45-678'))
+        outlet = accessory.Accessory('Test Accessory', pincode=bytearray(b'123-45-678'))
+        outlet.category = accessory.Category.OUTLET  # Test another Category besides OTHER
+        acc_pattern = 'X-HM://00145Q53I' + acc.setup_id
+        outlet_pattern = 'X-HM://0061QIA1A' + outlet.setup_id
+        assert (acc.xhm_uri == acc_pattern
+                and outlet.xhm_uri == outlet_pattern)
 
 
 class TestBridge(TestAccessory):
@@ -65,7 +73,7 @@ class TestBridge(TestAccessory):
         with pytest.raises(ValueError):
             bridge.add_accessory(acc_2)
 
-    def test_add_bridge_to_bridge(self):
+    def test_n_add_bridge_to_bridge(self):
         bridge = accessory.Bridge('Test Bridge')
         bridge_acc = accessory.Bridge('Test Bridge Acc')
         with pytest.raises(ValueError):
